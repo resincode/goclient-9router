@@ -77,3 +77,30 @@ func TestBearerToken(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestCLITokenHeader(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Header.Get("x-9r-cli-token"); got != "cli-token" {
+			t.Fatalf("unexpected cli token header %q", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"keys": []any{}})
+	}))
+	t.Cleanup(server.Close)
+
+	client, err := New(server.URL, WithCLIToken("cli-token"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := client.ListKeys(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDeriveCLITokenMatches9RouterCLI(t *testing.T) {
+	machineID := "0123456789abcdef0123456789abcdef"
+	machineHash := sha256Hex(machineID)
+	got := sha256Hex(machineHash + cliTokenSalt)[:16]
+	if got != "5ef8f7e16c5bede3" {
+		t.Fatalf("unexpected cli token %q", got)
+	}
+}

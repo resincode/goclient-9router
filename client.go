@@ -18,6 +18,7 @@ type Client struct {
 	baseURL    *url.URL
 	httpClient *http.Client
 	apiKey     string
+	cliToken   string
 	cookies    []*http.Cookie
 	userAgent  string
 }
@@ -35,6 +36,18 @@ func WithHTTPClient(httpClient *http.Client) Option {
 func WithAPIKey(apiKey string) Option {
 	return func(c *Client) {
 		c.apiKey = apiKey
+	}
+}
+
+func WithCLIToken(cliToken string) Option {
+	return func(c *Client) {
+		c.cliToken = cliToken
+	}
+}
+
+func WithAutoCLIToken() Option {
+	return func(c *Client) {
+		c.cliToken = deriveCLIToken()
 	}
 }
 
@@ -99,6 +112,9 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 	}
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	}
+	if c.cliToken != "" {
+		req.Header.Set("x-9r-cli-token", c.cliToken)
 	}
 	for _, cookie := range c.cookies {
 		req.AddCookie(cookie)

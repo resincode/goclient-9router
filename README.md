@@ -51,6 +51,7 @@ func main() {
 ## Notes
 
 - If dashboard login is required, call Login(ctx, password) first. The client stores returned cookies in memory for later calls.
+- For local CLI-style dashboard API access without a password, construct the client with WithAutoCLIToken().
 - For /v1 calls, construct the client with WithAPIKey(key).
 - Start only starts the process. Use Health with retries in the caller to wait until the service is ready.
 - Go is managed with mise on this host.
